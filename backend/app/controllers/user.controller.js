@@ -7,6 +7,7 @@ exports.create = (req, res) => {
     if (!req.body.name || !req.body.email || !req.body.password || !req.body.role ) {
       res.status(400).send({ message: "Content can not be empty!" });
       return;
+   
     }
   
     // Create a Tutorial
