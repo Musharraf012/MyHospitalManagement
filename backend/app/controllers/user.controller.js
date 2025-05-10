@@ -1,131 +1,69 @@
-const db = require("../models");
-const User = db.user;
+// app/controllers/user.controller.js
+const userService = require("../services/user.service");
 
-// Create and Save a new User
-exports.create = (req, res) => {
-    // Validate request
-    if (!req.body.name || !req.body.email || !req.body.password || !req.body.role ) {
-      res.status(400).send({ message: "Content can not be empty!" });
-      return;
-   
-    }
-  
-    // Create a Tutorial
-    const user = new User({
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-      role:req.body.role
-    });
-  
-    // Save Tutorial in the database
-    user
-      .save()
-      .then(data => {
-        res.send(data);
-      })
-      .catch(err => {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while creating the User."
-        });
-      });
-  };
-
-// Retrieve all User from the database.
-exports.findAll = (req, res) => {
-    const name = req.query.name;
-    var condition = name ? { name: { $regex: new RegExp(name), $options: "i" } } : {};
-  
-    User.find(condition)
-      .then(data => {
-        res.send(data);
-      })
-      .catch(err => {
-        res.status(500).send({
-          message:
-            err.message || "Some error occurred while retrieving users."
-        });
-      });
-  };
-
-// Find a single User with an id
-exports.findOne = (req, res) => {
-    const id = req.params.id;
-  
-    User.findById(id)
-      .then(data => {
-        if (!data)
-          res.status(404).send({ message: "Not found User with id " + id });
-        else res.send(data);
-      })
-      .catch(err => {
-        res
-          .status(500)
-          .send({ message: "Error retrieving User with id=" + id });
-      });
-  };
-
-// Update a User by the id in the request
-exports.update = (req, res) => {
-  if (!req.body) {
-    return res.status(400).send({
-      message: "Data to update can not be empty!"
-    });
-  }
-
-  const id = req.params.id;
-
-  User.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
-    .then(data => {
-      if (!data) {
-        res.status(404).send({
-          message: `Cannot update User with id=${id}. Maybe User was not found!`
-        });
-      } else res.send({ message: "User was updated successfully." });
-    })
-    .catch(err => {
-      res.status(500).send({
-        message: "Error updating User with id=" + id
-      });
-    });
-};
-
-// Delete a single user by ID
-exports.delete = async (req, res) => {
-  const id = req.params.id;
-
+exports.create = async (req, res) => {
   try {
-    const user = await User.findByIdAndDelete(id);
-
-    if (!user) {
-      return res.status(404).send({
-        message: `Cannot delete User with id=${id}. Maybe User was not found!`,
-      });
+    const { name, email, password, role } = req.body;
+    if (!name || !email || !password || !role) {
+      return res.status(400).send({ message: "Content can not be empty!" });
     }
 
-    res.send({ message: "User was deleted successfully!" });
+    const user = await userService.createUser({ name, email, password, role });
+    res.send(user);
   } catch (err) {
-    res.status(500).send({
-      message: `Could not delete User with id=${id}`,
-      error: err.message,
-    });
+    res.status(500).send({ message: err.message || "Error creating user." });
   }
 };
 
+exports.findAll = async (req, res) => {
+  try {
+    const name = req.query.name;
+    const users = await userService.getAllUsers(name);
+    res.send(users);
+  } catch (err) {
+    res.status(500).send({ message: err.message || "Error retrieving users." });
+  }
+};
 
-//delete all users
-exports.deleteAll = (req, res) => {
-  User.deleteMany({})
-    .then(data => {
-      res.send({
-        message: `${data.deletedCount} Users were deleted successfully!`
-      });
-    })
-    .catch(err => {
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while removing all tutorials."
-      });
-    });
+exports.findOne = async (req, res) => {
+  try {
+    const user = await userService.getUserById(req.params.id);
+    if (!user) return res.status(404).send({ message: "User not found." });
+    res.send(user);
+  } catch (err) {
+    res.status(500).send({ message: "Error retrieving user." });
+  }
+};
+
+exports.update = async (req, res) => {
+  try {
+    if (!req.body) return res.status(400).send({ message: "Data to update can't be empty." });
+
+    const updatedUser = await userService.updateUserById(req.params.id, req.body);
+    if (!updatedUser) return res.status(404).send({ message: "User not found." });
+
+    res.send({ message: "User updated successfully.", user: updatedUser });
+  } catch (err) {
+    res.status(500).send({ message: "Error updating user." });
+  }
+};
+
+exports.delete = async (req, res) => {
+  try {
+    const deleted = await userService.deleteUserById(req.params.id);
+    if (!deleted) return res.status(404).send({ message: "User not found." });
+
+    res.send({ message: "User deleted successfully." });
+  } catch (err) {
+    res.status(500).send({ message: "Error deleting user." });
+  }
+};
+
+exports.deleteAll = async (req, res) => {
+  try {
+    const result = await userService.deleteAllUsers();
+    res.send({ message: `${result.deletedCount} users were deleted.` });
+  } catch (err) {
+    res.status(500).send({ message: "Error deleting all users." });
+  }
 };
