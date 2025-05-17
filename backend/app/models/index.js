@@ -8,6 +8,7 @@ db.mongoose = mongoose;
 db.url = dbConfig.url;
 db.user = require("./user.model.js")(mongoose);
 db.role = require("./role.model.js")
+db.refreshToken = require("./refreshToken.model");
 
 db.ROLES = ["super admin", "admin", "doctor","nurse", "receptionist", "patient"];
 
