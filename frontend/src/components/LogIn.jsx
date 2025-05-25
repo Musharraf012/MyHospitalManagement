@@ -1,56 +1,30 @@
 import React, { useState } from "react";
-import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { signInRequest } from "../slices/authSlice";
 
 function Login() {
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
+
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
 
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await axios.post(
-        "http://localhost:8080/api/auth/signin",
-        formData
-      );
-
-      // Store tokens and user data (customize as needed)
-      localStorage.setItem("accessToken", res.data.accessToken);
-      localStorage.setItem("refreshToken", res.data.refreshToken);
-      //   localStorage.setItem('user', JSON.stringify(res.data));
-
-      alert("Login successful!");
-      // Redirect or update auth context if needed
-    } catch (err) {
-      if (err.response && err.response.data.message) {
-        setError(err.response.data.message);
-      } else {
-        setError("Login failed.");
-      }
-    } finally {
-      setLoading(false);
-      setFormData({
-        username: "",
-        password: "",
-      });
-    }
+    dispatch(signInRequest(formData)); // Trigger saga with credentials
   };
 
   return (
     <div className="max-w-md mx-auto p-4 shadow rounded bg-white">
       <h2 className="text-2xl font-bold mb-4">Login</h2>
       {error && <div className="text-red-600 mb-3">{error}</div>}
+
       <form onSubmit={handleSubmit}>
         <div className="mb-3">
           <label>Username</label>

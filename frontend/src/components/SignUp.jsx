@@ -1,7 +1,10 @@
 import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { useDispatch, useSelector } from 'react-redux';
+
 import axios from 'axios';
+import { signUpRequest } from '../slices/authSlice';
 
 const rolesList = [
   "super admin",
@@ -13,6 +16,7 @@ const rolesList = [
 ];
 
 const Signup = () => {
+  const dispatch = useDispatch();
   const formik = useFormik({
     initialValues: {
       username: '',
@@ -35,14 +39,13 @@ const Signup = () => {
     }),
     onSubmit: async (values, { setSubmitting, resetForm, setStatus }) => {
       try {
-        await axios.post('http://localhost:8080/api/auth/signup', values);
-        alert("User registered successfully!");
-        resetForm();
+        dispatch(signUpRequest(values));
       } catch (error) {
         setStatus({ error: "Error registering user." });
         console.error(error);
       } finally {
         setSubmitting(false);
+        resetForm();
       }
     }
   });

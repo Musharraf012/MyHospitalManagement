@@ -3,6 +3,7 @@ import "./App.css";
 import Signup from "./components/Signup";
 import Login from "./components/Login";
 import Layout from "./components/Layout";
+ import { ToastContainer } from 'react-toastify';
 
 function App() {
   const router = createBrowserRouter([
@@ -24,6 +25,7 @@ function App() {
 
   return (
     <>
+    <ToastContainer/>
       <RouterProvider
         router={router}
         //  fallbackElement={<BigSpinner />}
